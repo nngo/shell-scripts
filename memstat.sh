@@ -76,13 +76,16 @@ esac
 echo -n "${value} ${reg} "
 }
 
+tmpfile1=/tmp/memstat_$$_1
+tmpfile2=/tmp/memstat_$$_2
+tmpfile3=/tmp/memstat_$$_3
 #to ensure that temp files not exist
-[[ -f /tmp/res ]] && rm -f /tmp/res
-[[ -f /tmp/res2 ]] && rm -f /tmp/res2
-[[ -f /tmp/res3 ]] && rm -f /tmp/res3
+[[ -f $tmpfile1 ]] && rm -f $tmpfile1
+[[ -f $tmpfile2 ]] && rm -f $tmpfile2
+[[ -f $tmpfile3 ]] && rm -f $tmpfile3
 
 
-#if argument passed script will show statistic only for a space separated list pids, if not we list all processes in /proc/ #and get statistic for all of them, all result are temporary stored in file /tmp/res
+#if argument passed script will show statistic only for a space separated list pids, if not we list all processes in /proc/ #and get statistic for all of them, all result are temporary stored in file $tmpfile1
 if [ $# -eq 0 ]
 then
 	pids=`ls /proc | grep -e [0-9] | grep -v [A-Za-z] `
@@ -91,19 +94,19 @@ else
 fi
 for pid in $pids
 do
-	get_process_mem $pid >> /tmp/res
+	get_process_mem $pid >> $tmpfile1
 done
 
 
 #This will sort result by memory usage
-cat /tmp/res | sort -gr -k 5 > /tmp/res2
+cat $tmpfile1 | sort -gr -k 5 > $tmpfile2
 
 #this part will get uniq names from process list, and we will add all lines with same process list 
 #we will count nomber of processes with same name, so if more that 1 process where will be
 # process(2) in output
-for Name in `cat /tmp/res2 | awk '{print $6}' | sort  | uniq`
+for Name in `cat $tmpfile2 | awk '{print $6}' | sort  | uniq`
 do
-count=`cat /tmp/res2 | awk -v src=$Name '{if ($6==src) {print $6}}'|wc -l| awk '{print $1}'`
+count=`cat $tmpfile2 | awk -v src=$Name '{if ($6==src) {print $6}}'|wc -l| awk '{print $1}'`
 if [ $count = "1" ];
 then
 	count=""
@@ -111,17 +114,17 @@ else
 	count="(${count})"
 fi
 
-VmSizeKB=`cat /tmp/res2 | awk -v src=$Name '{if ($6==src) {print $1}}' | paste -sd+ | bc`
-VmRssKB=`cat /tmp/res2 | awk -v src=$Name '{if ($6==src) {print $3}}' | paste -sd+ | bc`
-total=`cat /tmp/res2 | awk '{print $5}' | paste -sd+ | bc`
+VmSizeKB=`cat $tmpfile2 | awk -v src=$Name '{if ($6==src) {print $1}}' | paste -sd+ | bc`
+VmRssKB=`cat $tmpfile2 | awk -v src=$Name '{if ($6==src) {print $3}}' | paste -sd+ | bc`
+total=`cat $tmpfile2 | awk '{print $5}' | paste -sd+ | bc`
 Sum=`echo "${VmRssKB}+${VmSizeKB}"|bc`
-#all result stored in /tmp/res3 file
-echo -e "$VmSizeKB  + $VmRssKB = $Sum \t ${Name}${count}" >>/tmp/res3
+#all result stored in $tmpfile3 file
+echo -e "$VmSizeKB  + $VmRssKB = $Sum \t ${Name}${count}" >>$tmpfile3
 done
 
 
 #this make sort once more.
-cat /tmp/res3 | sort -gr -k 5 | uniq > /tmp/res
+cat $tmpfile3 | sort -gr -k 5 | uniq > $tmpfile1
 
 #now we print result , first header
 echo -e "Private \t + \t Shared \t = \t RAM used \t Program"
@@ -137,7 +140,7 @@ do
 		echo ""
 		fi
 	done
-done < /tmp/res
+done < $tmpfile1
 
 #this part print footer, with counted Ram usage
 echo "--------------------------------------------------------"
@@ -145,6 +148,6 @@ echo -e "\t\t\t\t\t\t `convert $total`"
 echo "========================================================"
 
 # we clean temporary file
-[[ -f /tmp/res ]] && rm -f /tmp/res
-[[ -f /tmp/res2 ]] && rm -f /tmp/res2
-[[ -f /tmp/res3 ]] && rm -f /tmp/res3
+[[ -f $tmpfile1 ]] && rm -f $tmpfile1
+[[ -f $tmpfile2 ]] && rm -f $tmpfile2
+[[ -f $tmpfile3 ]] && rm -f $tmpfile3
