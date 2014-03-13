@@ -6,17 +6,16 @@
 # this shell script tries best to find more accurate results. Script use 2 files ie /proc//status (to get name of process)
 # and /proc//smaps for memory statistic of process. Then script will convert all data into Kb, Mb, Gb. 
 # Also make sure you install bc command.
-
-
-Source : http://www.linoxide.com/linux-shell-script/linux-memory-usage-program/
-Parent : http://www.linoxide.com/guide/scripts-pdf.html
+#
+# Source : http://www.linoxide.com/linux-shell-script/linux-memory-usage-program/
+# Parent : http://www.linoxide.com/guide/scripts-pdf.html
+#
 
 # Make sure only root can run our script
-
-if [ "$(id -u)" != "0" ]; then
-   echo "This script must be run as root" 1>&2
-   exit 1
-fi
+# if [ "$(id -u)" != "0" ]; then
+#   echo "This script must be run as root" 1>&2
+#   exit 1
+# fi
 
 ### Functions
 #This function will count memory statistic for passed PID
