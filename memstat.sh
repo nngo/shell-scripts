@@ -82,17 +82,17 @@ echo -n "${value} ${reg} "
 [[ -f /tmp/res3 ]] && rm -f /tmp/res3
 
 
-#if argument passed script will show statistic only for that pid, of not � we list all processes in /proc/ #and get statistic for all of them, all result we store in file /tmp/res
+#if argument passed script will show statistic only for a space separated list pids, if not we list all processes in /proc/ #and get statistic for all of them, all result are temporary stored in file /tmp/res
 if [ $# -eq 0 ]
 then
 	pids=`ls /proc | grep -e [0-9] | grep -v [A-Za-z] `
-	for i in $pids
-	do
-	get_process_mem $i >> /tmp/res
-	done
 else
-	get_process_mem $1>> /tmp/res
+	pids=$@
 fi
+for pid in $pids
+do
+	get_process_mem $pid >> /tmp/res
+done
 
 
 #This will sort result by memory usage
